@@ -1,0 +1,82 @@
+[Speaker 1]
+All right, so we're looking through this, and we're going to give you, uh, different tasks based off of what we see and just overall usability and functionality. Um, 379. That's a lot of Articles is a lot to look through. So I don't know.
+
+[Speaker 2]
+We only need the 10 best ones, so somehow we have to filter these two. Yeah, maybe some
+
+[Speaker 1]
+Kind of evolution engine or something like that. I mean. Obviously, you know, what
+
+[Speaker 2]
+Would be cool? If some of them? Um. You look at Google Trends data through the Google Trends API and. But that's more of selecting. So, like seeing what's trending in that space, yeah.
+
+[Speaker 1]
+So, I mean, what it has here is GitHub trending, which is, is pretty good, but maybe from each, like, new source. We have, like, a limit of like five or something like that that are like the five heavy hitting from GitHub trending instead of like getting every single game trending.
+
+And then, like Hacker News, is the same thing. And then, also, I'm seeing old. Like articles, we need to confirm on each article that they are within the last seven days, because this article right here is from August 26, 2025, which is almost a year old.
+
+[Speaker 2]
+Yeah, and it again. It has to filter through the scrape data and pick. Let's, let's say the top 10 we only want 10. We don't want to look more at 10 every day.
+
+[Speaker 1]
+Yeah, and try to get the best from each of the new sources. Yeah, so it can, it can scrape. It can be more. It can be more than 10. Um, based off of how many? New sources that we have selected. Maybe we have some kind of configuration tab where we can add and subtract new sources if we find that we.
+
+Want to add something or we find that we never get good articles from one new source as well? Sorry. Okay. Um. I think we will have to.
+
+[Speaker 2]
+Um, it should scrape through a bunch of stories, but then there should be a filtering algorithm or some kind of. Uh, rule in which it looks through, like the data was posted. Like we said, but then it looks through at, like. Um, how valuable is this content? Is it something?
+
+You can easily like teach through an Instagram Carousel or a. Um. Facebook post or something like that? Um.
+
+So, somehow we have to filter the 300 or whatever amount we get stories to the top 10 for the day. And. Um. Yeah. Happy!
+
+[Speaker 1]
+Have it. Ask us questions about.
+
+[Speaker 2]
+Ideas surrounding how to filter the stories.
+
+[Speaker 1]
+That's actually getting it from, uh, X, as well.
+
+[Speaker 2]
+Yeah, Twitter.
+
+[Speaker 1]
+I mean, in essence, is that we want to consider all news on the market or whatever it may be on the streams on turn in on the internet. Yeah. Um, but we don't have enough time each day to go through 450 articles, so we want some kind of funnel.
+
+Like you said to be able to do this, um, also the categorization. I don't see any value add to the category authorization unless I mean on the actual website that we're on with the localhost. It has, um. Like the olds. Categories. It hasn't been updated, so that needs to be fixed.
+
+Also, on the top left corner, it says good newscast.ai that needs to be switched to whatever the new name is. Um, and then the feed curation.
+
+[Speaker 2]
+Um, one thing too is, as you pull the source which it does, and the link which it does.
+
+[Speaker 1]
+Um, but then it has to.
+
+[Speaker 2]
+The written text. In context, and they provide a short summary so we can just review it quickly, but it also has to pull any media Associated on that page. So, if there are photos? It should download those and that should be contained within each of the. Um. Curated. Boxes.
+
+Yeah, yeah,
+
+[Speaker 1]
+I see what you mean. So, like, within the open AI files, you have the link to the actual article, and then you'll have more options like configurable so that we can view it like in in a quicker fashion.
+
+[Speaker 2]
+Yeah, so I think there should be like the photos from the article should be here because we would want to use that. Later. Um, then it should extract all the text from that page. But then it should provide just a like, quick, like couple of standard summary of what the article is about and how it can apply value.
+
+Would you want like
+
+[Speaker 1]
+A script approval because it seems like it's just like generated daily episode and then no so for like the podcast?
+
+[Speaker 2]
+Um, we. Let's not think about that. Let's just work on the curation right now. A few curation. Yeah, yeah. Um.
+
+I'd be curious, like?
+
+[Speaker 1]
+I guess the categories do make sense in the in the sense that you may want to have like five categories that were consistently like hitting each week, and then maybe to have like a tally of the current approved. Um, and maybe something like a summary of, like, since I have these five uh articles approved, this is kind of like what the direction of the podcast is gonna go.
+
+Um, if we do end up generating a podcast from it, so some kind of like quick view on the approved today section. I think that's a good start. Yeah. Also, the scrape news stories worked so good. Job on that.

@@ -3,7 +3,10 @@ import requests
 import json
 import sys
 import random
+import re
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
 
 # Ensure backend/src is in python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -16,6 +19,9 @@ load_dotenv(os.path.join(backend_dir, ".env"))
 API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
 MODEL = os.getenv("LLM_MODEL", "meta-llama/llama-3-70b-instruct:free")
 
+IMAGES_DIR = os.path.join(backend_dir, 'static', 'images')
+os.makedirs(IMAGES_DIR, exist_ok=True)
+
 CATEGORIES = [
     "Model Release",
     "Open Source Repository",
@@ -27,6 +33,92 @@ CATEGORIES = [
     "Robotics & Embodied AI",
     "Safety & Alignment"
 ]
+
+# Patterns to skip for ad/tracker images
+_SKIP_PATTERNS = re.compile(r'pixel|tracking|spacer|logo|icon|avatar|1x1', re.IGNORECASE)
+
+
+def extract_article_details(url):
+    """GET the article URL, parse with BeautifulSoup, extract full_text and image_urls."""
+    result = {'full_text': '', 'image_urls': []}
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        # Extract full_text from <p> tags
+        paragraphs = soup.find_all('p')
+        full_text = ' '.join(p.get_text(strip=True) for p in paragraphs)
+        result['full_text'] = full_text[:5000]
+
+        # Extract images
+        image_urls = []
+
+        # Try og:image first
+        og_image = soup.find('meta', property='og:image')
+        if og_image and og_image.get('content'):
+            image_urls.append(urljoin(url, og_image['content']))
+
+        # Then all <img> tags
+        for img in soup.find_all('img', src=True):
+            src = img['src']
+
+            # Skip data: URIs
+            if src.startswith('data:'):
+                continue
+
+            # Skip common ad/tracker patterns
+            if _SKIP_PATTERNS.search(src):
+                continue
+
+            # Check dimensions if available
+            width = img.get('width')
+            height = img.get('height')
+            try:
+                if width and int(width) < 250:
+                    continue
+                if height and int(height) < 250:
+                    continue
+            except (ValueError, TypeError):
+                pass
+
+            abs_url = urljoin(url, src)
+            if abs_url not in image_urls:
+                image_urls.append(abs_url)
+
+        result['image_urls'] = image_urls[:5]
+    except Exception as e:
+        print(f"  Error extracting article details from {url}: {e}")
+
+    return result
+
+
+def download_images(image_urls, story_id):
+    """Download images to IMAGES_DIR. Returns list of dicts with url and local_path."""
+    downloaded = []
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    for index, img_url in enumerate(image_urls):
+        try:
+            resp = requests.get(img_url, headers=headers, stream=True, timeout=10)
+            resp.raise_for_status()
+            filename = f"story_{story_id}_{index}.jpg"
+            filepath = os.path.join(IMAGES_DIR, filename)
+            with open(filepath, 'wb') as f:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            downloaded.append({
+                'url': img_url,
+                'local_path': f'/images/{filename}'
+            })
+        except Exception:
+            pass  # Skip failures silently
+    return downloaded
+
 
 def clean_story(title, raw_summary):
     if not API_KEY or API_KEY == "your_openrouter_api_key_here":
@@ -47,7 +139,14 @@ def clean_story(title, raw_summary):
             cat = random.choice(CATEGORIES)
             
         summary_clean = f"An interesting development in the AI space: {title}. This covers recent advancements that could have significant impacts for builders."
-        return {"is_positive": is_pos, "category": cat, "clean_summary": summary_clean}
+        return {
+            "is_positive": is_pos,
+            "category": cat,
+            "clean_summary": summary_clean,
+            "value_score": 5,
+            "value_explanation": "A noteworthy development in the AI ecosystem relevant to developers and builders.",
+            "niche_tags": ["AI"]
+        }
 
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
@@ -63,6 +162,9 @@ Analyze the story and output a JSON object with:
 1. "is_positive": (boolean) True if the story represents a highly valuable, cutting-edge AI release, research, repo, hardware news, startup news, or dev tool. False if it is outdated, generic news, spam/ad, or lacks actual technical substance and value-add.
 2. "category": (string) Must be EXACTLY one of these categories: {", ".join(f'"{c}"' for c in CATEGORIES)}.
 3. "clean_summary": (string) A 3-4 sentence clean, concise, technical summary written for a host to read aloud on a podcast. Focus heavily on the specifications, capabilities, and the tangible value-add for developers or builders. Explain *why* this matters. Keep it highly informative.
+4. "value_score": (integer 1-10) How educational, teachable, or useful is this story for developers? 1 = low value, 10 = must-read.
+5. "value_explanation": (string) A single sentence explaining why a developer should care about this story.
+6. "niche_tags": (array of strings) 1-3 specific niche keyword tags like "AI Agents", "Quantization", "Text-to-Video", "RAG", "Fine-tuning", etc.
 
 Respond ONLY with valid JSON. Do not include markdown formatting or backticks around the JSON."""
 
@@ -93,6 +195,14 @@ Respond ONLY with valid JSON. Do not include markdown formatting or backticks ar
             # Ensure category is in valid set, else default
             if parsed.get("category") not in CATEGORIES:
                 parsed["category"] = "Model Release"
+            # Ensure value_score is an int in range
+            try:
+                parsed["value_score"] = max(1, min(10, int(parsed.get("value_score", 5))))
+            except (ValueError, TypeError):
+                parsed["value_score"] = 5
+            # Ensure niche_tags is a list
+            if not isinstance(parsed.get("niche_tags"), list):
+                parsed["niche_tags"] = ["AI"]
             return parsed
         else:
             print(f"LLM API Error: Status {response.status_code} - {response.text}")
@@ -109,10 +219,33 @@ def run_cleaner():
     cleaned_count = 0
     rejected_count = 0
     
-    for story in scraped_stories[:15]: # Process top 15 in test cycles
+    for story in scraped_stories[:30]:  # Process top 30
         print(f"Processing: {story['title'][:50]}...")
         cleaned = clean_story(story['title'], story['summary'])
         if cleaned:
+            # Extract article details (full_text and images)
+            article_details = extract_article_details(story['url'])
+            full_text = article_details.get('full_text', '')
+            image_urls = article_details.get('image_urls', [])
+
+            # Download images locally
+            downloaded_images = download_images(image_urls, story['id'])
+            images_json_str = json.dumps(downloaded_images) if downloaded_images else None
+
+            # Prepare niche_tags as JSON string for storage
+            niche_tags = cleaned.get('niche_tags', [])
+            niche_tags_str = json.dumps(niche_tags) if niche_tags else None
+
+            # Save enrichment details to DB
+            db.update_story_details(
+                story_id=story['id'],
+                images_json=images_json_str,
+                value_score=cleaned.get('value_score'),
+                value_explanation=cleaned.get('value_explanation'),
+                full_text=full_text if full_text else None,
+                niche_tags=niche_tags_str
+            )
+
             if cleaned.get("is_positive"):
                 db.update_story_status(
                     story_id=story['id'],

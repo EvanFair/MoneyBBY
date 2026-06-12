@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from typing import Optional
 import os
 import sys
 import sqlite3
@@ -15,7 +16,7 @@ import writer
 import tts
 import renderer
 
-app = FastAPI(title="GoodNewsCast AI API")
+app = FastAPI(title="AIPulse API")
 
 # Enable CORS for frontend accessibility
 app.add_middleware(
@@ -29,10 +30,19 @@ app.add_middleware(
 backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 output_dir = os.path.join(backend_dir, "output")
 static_dir = os.path.join(backend_dir, "static")
+images_dir = os.path.join(backend_dir, "static", "images")
 
-# Create output/static dirs if missing
+# Create output/static/images dirs if missing
 os.makedirs(output_dir, exist_ok=True)
 os.makedirs(static_dir, exist_ok=True)
+os.makedirs(images_dir, exist_ok=True)
+
+# Initialize database on startup
+db.init_db()
+
+# ---------------------------------------------------------------------------
+# Pydantic models
+# ---------------------------------------------------------------------------
 
 class StatusUpdateRequest(BaseModel):
     status: str
@@ -42,10 +52,28 @@ class StatusUpdateRequest(BaseModel):
 class EpisodeCreateRequest(BaseModel):
     title: str = "Daily Wholesome Round-up"
 
+class SourceCreateRequest(BaseModel):
+    name: str
+    url: str
+    type: str
+    volume_limit: int = 10
+
+class SourceUpdateRequest(BaseModel):
+    enabled: Optional[int] = None
+    volume_limit: Optional[int] = None
+    name: Optional[str] = None
+    url: Optional[str] = None
+
+# ---------------------------------------------------------------------------
+# Story endpoints
+# ---------------------------------------------------------------------------
+
 @app.get("/api/stories")
-def get_stories(status: str = "scraped"):
+def get_stories(status: str = "scraped", limit: int = None):
     if status not in ["scraped", "approved", "rejected", "used"]:
         raise HTTPException(status_code=400, detail="Invalid status parameter")
+    if status == "scraped" and limit is not None:
+        return db.get_top_scraped_stories(limit)
     return db.get_stories_by_status(status)
 
 @app.post("/api/stories/{story_id}/status")
@@ -60,6 +88,10 @@ def update_story_status(story_id: int, req: StatusUpdateRequest):
     db.update_story_status(story_id, req.status, req.clean_summary, req.category)
     return {"message": f"Story {story_id} status updated to {req.status}"}
 
+# ---------------------------------------------------------------------------
+# Scrape / pipeline endpoints
+# ---------------------------------------------------------------------------
+
 @app.post("/api/scrape")
 def trigger_scrape(background_tasks: BackgroundTasks):
     def run_pipeline():
@@ -70,6 +102,10 @@ def trigger_scrape(background_tasks: BackgroundTasks):
         
     background_tasks.add_task(run_pipeline)
     return {"message": "Scraper pipeline triggered in the background."}
+
+# ---------------------------------------------------------------------------
+# Episode endpoints
+# ---------------------------------------------------------------------------
 
 def generate_episode_pipeline(episode_id):
     # 1. Synthesize audio
@@ -111,10 +147,62 @@ def get_episode(episode_id: int):
         raise HTTPException(status_code=404, detail="Episode not found")
     return dict(row)
 
+# ---------------------------------------------------------------------------
+# Source CRUD endpoints
+# ---------------------------------------------------------------------------
+
+@app.get("/api/sources")
+def get_sources():
+    return db.get_sources()
+
+@app.post("/api/sources")
+def create_source(req: SourceCreateRequest):
+    source_id = db.add_source(req.name, req.url, req.type, req.volume_limit)
+    return {"message": "Source created", "source_id": source_id}
+
+@app.put("/api/sources/{source_id}")
+def update_source(source_id: int, req: SourceUpdateRequest):
+    db.update_source(source_id, enabled=req.enabled, volume_limit=req.volume_limit, name=req.name, url=req.url)
+    return {"message": f"Source {source_id} updated"}
+
+@app.delete("/api/sources/{source_id}")
+def delete_source(source_id: int):
+    db.delete_source(source_id)
+    return {"message": f"Source {source_id} deleted"}
+
+# ---------------------------------------------------------------------------
+# Trending tags & approved summary
+# ---------------------------------------------------------------------------
+
+@app.get("/api/trending-tags")
+def get_trending_tags():
+    raw_tags = db.get_trending_tags()
+    return [{"tag": tag, "count": count} for tag, count in raw_tags]
+
+@app.get("/api/approved-summary")
+def get_approved_summary():
+    stories = db.get_stories_by_status("approved")
+    if not stories:
+        return {"summary": "No approved stories available."}
+    lines = []
+    for s in stories:
+        cat = s.get("category", "Uncategorized")
+        title = s.get("title", "Untitled")
+        lines.append(f"[{cat}] {title}")
+    summary_text = "Approved Stories:\n" + "\n".join(lines)
+    return {"summary": summary_text, "count": len(stories)}
+
+# ---------------------------------------------------------------------------
+# Static file mounts — MUST come after all API route definitions
+# ---------------------------------------------------------------------------
+
 # Mount media outputs (so dashboard can play MP3/MP4 files directly)
 app.mount("/output", StaticFiles(directory=output_dir), name="output")
 
-# Mount static web files (dashboard UI)
+# Mount images directory
+app.mount("/images", StaticFiles(directory=images_dir), name="images")
+
+# Mount static web files (dashboard UI) — catch-all MUST be LAST
 app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 if __name__ == "__main__":
