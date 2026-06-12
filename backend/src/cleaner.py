@@ -179,17 +179,17 @@ def clean_story(title, raw_summary):
         "Content-Type": "application/json"
     }
 
-    system_prompt = f"""You are a technical editor for an AI news podcast targeting developers and tech enthusiasts.
-Your job is to analyze scraped articles and determine if they represent valuable tech news or interesting developments in the AI space.
-The content MUST be cutting-edge and provide true value to our readers (e.g., educational, tool-driven, or research-deep-dives).
+    system_prompt = f"""You are a technical producer and content editor for AIPulse, a daily AI news service.
+Your job is to analyze scraped articles and determine if they represent valuable, cutting-edge AI news, practical tools, tutorials, or updates.
+We are targeting developers, creators, and general tech-adjacent audiences (remembering that 96% of people on Earth haven't touched AI yet). Focus on practical utility: tools that simplify daily tasks, optimize workflows, or make life better/faster.
 
 Analyze the story and output a JSON object with:
-1. "is_positive": (boolean) True if the story represents a highly valuable, cutting-edge AI release, research, repo, hardware news, startup news, or dev tool. False if it is outdated, generic news, spam/ad, or lacks actual technical substance and value-add.
+1. "is_positive": (boolean) True if the story represents a highly valuable, practical AI tool, library, open-source repo, model release, or actionable technique that teaches how to incorporate AI into daily life/work. False if it is generic news, hype/politics, outdated, spam, or lacks technical substance or practical value-add.
 2. "category": (string) Must be EXACTLY one of these categories: {", ".join(f'"{c}"' for c in CATEGORIES)}.
-3. "clean_summary": (string) A 3-4 sentence clean, concise, technical summary written for a host to read aloud on a podcast. Focus heavily on the specifications, capabilities, and the tangible value-add for developers or builders. Explain *why* this matters. Keep it highly informative.
-4. "value_score": (integer 1-10) How educational, teachable, or useful is this story for developers? 1 = low value, 10 = must-read.
-5. "value_explanation": (string) A single sentence explaining why a developer should care about this story.
-6. "niche_tags": (array of strings) 1-3 specific niche keyword tags like "AI Agents", "Quantization", "Text-to-Video", "RAG", "Fine-tuning", etc.
+3. "clean_summary": (string) A 3-4 sentence clean, concise summary written for a host to read aloud on a podcast. Focus heavily on practical specs, capabilities, and the tangible value-add (how it makes daily life/work faster, cheaper, or better). Explain exactly *why* this matters to someone looking to adopt AI.
+4. "value_score": (integer 1-10) How practical, educational, or useful is this story? Give high scores (8-10) for highly actionable tools, repositories, or tips that simplify workflows. Give low scores for high-level theory or generic corporate announcements.
+5. "value_explanation": (string) A single sentence explaining the practical benefit of this story (e.g., "Saves developers 2 hours of boilerplate coding by automating X" or "Allows creators to generate high-res videos locally without a GPU").
+6. "niche_tags": (array of strings) 1-3 specific niche keyword tags like "AI Agents", "Quantization", "Text-to-Video", "Workflow Hack", "Local LLM", "Productivity", etc.
 
 Respond ONLY with valid JSON. Do not include markdown formatting or backticks around the JSON."""
 
@@ -325,15 +325,15 @@ def run_cleaner():
             if cleaned.get("is_positive"):
                 db.update_story_status(
                     story_id=story['id'],
-                    status="approved",
+                    status="scraped",
                     clean_summary=cleaned.get("clean_summary"),
                     category=cleaned.get("category")
                 )
-                print(f"-> APPROVED as [{cleaned.get('category')}]: {cleaned.get('clean_summary')[:80]}...")
+                print(f"-> KEPT PENDING (scraped) as [{cleaned.get('category')}]: {cleaned.get('clean_summary')[:80]}...")
                 cleaned_count += 1
             else:
                 db.update_story_status(story['id'], "rejected")
-                print("-> REJECTED (Not tech/spam)")
+                print("-> REJECTED (Not AI/spam)")
                 rejected_count += 1
         else:
             print("-> Skipped due to API error")
