@@ -57,11 +57,12 @@ def clean_story(title, raw_summary):
 
     system_prompt = f"""You are a technical editor for an AI news podcast targeting developers and tech enthusiasts.
 Your job is to analyze scraped articles and determine if they represent valuable tech news or interesting developments in the AI space.
+The content MUST be cutting-edge and provide true value to our readers (e.g., educational, tool-driven, or research-deep-dives).
 
 Analyze the story and output a JSON object with:
-1. "is_positive": (boolean) True if the story represents a valuable AI release, research, repo, hardware news, startup news, or dev tool. False if it is unrelated to AI/LLMs/computing, is spam/ad, or lacks actual tech substance.
+1. "is_positive": (boolean) True if the story represents a highly valuable, cutting-edge AI release, research, repo, hardware news, startup news, or dev tool. False if it is outdated, generic news, spam/ad, or lacks actual technical substance and value-add.
 2. "category": (string) Must be EXACTLY one of these categories: {", ".join(f'"{c}"' for c in CATEGORIES)}.
-3. "clean_summary": (string) A 3-4 sentence clean, concise, technical summary written for a host to read aloud on a podcast. Focus on the specifications, capabilities, and the value-add for developers or builders. Keep it highly informative.
+3. "clean_summary": (string) A 3-4 sentence clean, concise, technical summary written for a host to read aloud on a podcast. Focus heavily on the specifications, capabilities, and the tangible value-add for developers or builders. Explain *why* this matters. Keep it highly informative.
 
 Respond ONLY with valid JSON. Do not include markdown formatting or backticks around the JSON."""
 

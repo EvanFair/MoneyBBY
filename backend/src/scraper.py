@@ -3,6 +3,7 @@ import requests
 import json
 import os
 import sys
+import time
 from datetime import datetime, timedelta
 
 # Ensure backend/src is in python path to import db
@@ -15,7 +16,7 @@ RSS_FEEDS = {
     "ArXiv Machine Learning": "http://export.arxiv.org/rss/cs.CL"
 }
 
-HN_API_URL = "https://hn.algolia.com/api/v1/search?tags=story&query={query}&restrictSearchableAttributes=title"
+HN_API_URL = "https://hn.algolia.com/api/v1/search?tags=story&query={query}&restrictSearchableAttributes=title&numericFilters=created_at_i>{timestamp}"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 def scrape_rss_feeds():
@@ -26,6 +27,13 @@ def scrape_rss_feeds():
             feed = feedparser.parse(url)
             print(f"Fetched {len(feed.entries)} entries from {source}")
             for entry in feed.entries:
+                # Filter by date (last 7 days) to ensure cutting-edge content
+                published_parsed = entry.get("published_parsed") or entry.get("updated_parsed")
+                if published_parsed:
+                    dt = datetime.fromtimestamp(time.mktime(published_parsed))
+                    if dt < datetime.now() - timedelta(days=7):
+                        continue
+                        
                 title = entry.title
                 link = entry.link
                 summary = entry.get("summary", entry.get("description", ""))
@@ -48,10 +56,11 @@ def scrape_hacker_news():
     headers = {"User-Agent": USER_AGENT}
     # Query for multiple AI relevant keywords
     queries = ["AI", "LLM", "GPU", "Claude", "Gemini", "OpenAI"]
+    seven_days_ago_ts = int((datetime.now() - timedelta(days=7)).timestamp())
     
     for query in queries:
         try:
-            url = HN_API_URL.format(query=query)
+            url = HN_API_URL.format(query=query, timestamp=seven_days_ago_ts)
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 hits = response.json().get("hits", [])
