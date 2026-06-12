@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import sys
+import random
 from dotenv import load_dotenv
 
 # Ensure backend/src is in python path
@@ -15,14 +16,37 @@ load_dotenv(os.path.join(backend_dir, ".env"))
 API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
 MODEL = os.getenv("LLM_MODEL", "meta-llama/llama-3-70b-instruct:free")
 
+CATEGORIES = [
+    "Model Release",
+    "Open Source Repository",
+    "Research Paper",
+    "Hardware & GPU Infrastructure",
+    "Developer Tooling & SDKs",
+    "AI SaaS & Consumer Product",
+    "Industry & Startups",
+    "Robotics & Embodied AI",
+    "Safety & Alignment"
+]
+
 def clean_story(title, raw_summary):
-    # If no API key is set, we will use a fallback rule-based mechanism for development testing
     if not API_KEY or API_KEY == "your_openrouter_api_key_here":
-        print("Warning: No API Key found in .env. Using fallback mock classifier.")
-        # Simple heuristic fallback
+        # Fallback heuristic classifier for development/offline testing
         is_pos = True
-        cat = "General Wholesome"
-        summary_clean = f"A wholesome story: {title}. {raw_summary[:150]}..."
+        
+        # Simple heuristic mapping for categories
+        lower_title = title.lower()
+        if "repo" in lower_title or "github" in lower_title:
+            cat = "Open Source Repository"
+        elif "paper" in lower_title or "research" in lower_title or "arxiv" in lower_title:
+            cat = "Research Paper"
+        elif "gpu" in lower_title or "nvidia" in lower_title or "hardware" in lower_title or "vram" in lower_title:
+            cat = "Hardware & GPU Infrastructure"
+        elif "model" in lower_title or "claude" in lower_title or "llama" in lower_title or "gpt" in lower_title:
+            cat = "Model Release"
+        else:
+            cat = random.choice(CATEGORIES)
+            
+        summary_clean = f"An interesting development in the AI space: {title}. This covers recent advancements that could have significant impacts for builders."
         return {"is_positive": is_pos, "category": cat, "clean_summary": summary_clean}
 
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -31,17 +55,17 @@ def clean_story(title, raw_summary):
         "Content-Type": "application/json"
     }
 
-    system_prompt = """You are an editor for a Wholesome/Good News podcast.
-Your job is to analyze scraped stories and determine if they are suitable.
+    system_prompt = f"""You are a technical editor for an AI news podcast targeting developers and tech enthusiasts.
+Your job is to analyze scraped articles and determine if they represent valuable tech news or interesting developments in the AI space.
 
 Analyze the story and output a JSON object with:
-1. "is_positive": (boolean) True if the story is genuinely uplifting, wholesome, inspiring, or good news. False if it has depressing undercurrents (e.g. death, tragedy, war, crime), is politically polarizing, or is commercial advertisement/spam.
-2. "category": (string) One of: "Animals", "Human Kindness", "Nature & Environment", "Science & Innovation", "General Wholesome".
-3. "clean_summary": (string) A 3-4 sentence clean, engaging, narrative-driven summary written for a host to read aloud. Avoid news jargon, clickbait headlines, and ads. Focus on the human story and wholesome outcome.
+1. "is_positive": (boolean) True if the story represents a valuable AI release, research, repo, hardware news, startup news, or dev tool. False if it is unrelated to AI/LLMs/computing, is spam/ad, or lacks actual tech substance.
+2. "category": (string) Must be EXACTLY one of these categories: {", ".join(f'"{c}"' for c in CATEGORIES)}.
+3. "clean_summary": (string) A 3-4 sentence clean, concise, technical summary written for a host to read aloud on a podcast. Focus on the specifications, capabilities, and the value-add for developers or builders. Keep it highly informative.
 
 Respond ONLY with valid JSON. Do not include markdown formatting or backticks around the JSON."""
 
-    user_content = f"Title: {title}\nRaw Text: {raw_summary}"
+    user_content = f"Title: {title}\nRaw Details: {raw_summary}"
 
     payload = {
         "model": MODEL,
@@ -49,7 +73,7 @@ Respond ONLY with valid JSON. Do not include markdown formatting or backticks ar
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_content}
         ],
-        "temperature": 0.2
+        "temperature": 0.1
     }
 
     try:
@@ -58,14 +82,17 @@ Respond ONLY with valid JSON. Do not include markdown formatting or backticks ar
             result = response.json()
             content = result["choices"][0]["message"]["content"].strip()
             
-            # Clean up potential markdown formatting backticks if the LLM outputted them
             if content.startswith("```json"):
                 content = content[7:]
             if content.endswith("```"):
                 content = content[:-3]
             content = content.strip()
             
-            return json.loads(content)
+            parsed = json.loads(content)
+            # Ensure category is in valid set, else default
+            if parsed.get("category") not in CATEGORIES:
+                parsed["category"] = "Model Release"
+            return parsed
         else:
             print(f"LLM API Error: Status {response.status_code} - {response.text}")
             return None
@@ -74,15 +101,14 @@ Respond ONLY with valid JSON. Do not include markdown formatting or backticks ar
         return None
 
 def run_cleaner():
-    print("Running AI Cleaner on scraped stories...")
-    # Fetch stories with status 'scraped'
+    print("Running AI Technical Cleaner on scraped tech stories...")
     scraped_stories = db.get_stories_by_status("scraped")
-    print(f"Found {len(scraped_stories)} new stories to clean.")
+    print(f"Found {len(scraped_stories)} new tech stories to clean.")
     
     cleaned_count = 0
     rejected_count = 0
     
-    for story in scraped_stories[:10]: # Process top 10 for safety/speed in sprint testing
+    for story in scraped_stories[:15]: # Process top 15 in test cycles
         print(f"Processing: {story['title'][:50]}...")
         cleaned = clean_story(story['title'], story['summary'])
         if cleaned:
@@ -97,7 +123,7 @@ def run_cleaner():
                 cleaned_count += 1
             else:
                 db.update_story_status(story['id'], "rejected")
-                print("-> REJECTED (Not wholesome/spam)")
+                print("-> REJECTED (Not tech/spam)")
                 rejected_count += 1
         else:
             print("-> Skipped due to API error")
