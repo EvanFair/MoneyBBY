@@ -4,6 +4,8 @@ import json
 import sys
 import random
 import re
+import io
+from PIL import Image
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -18,6 +20,7 @@ load_dotenv(os.path.join(backend_dir, ".env"))
 
 API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY")
 MODEL = os.getenv("LLM_MODEL", "meta-llama/llama-3-70b-instruct:free")
+
 
 IMAGES_DIR = os.path.join(backend_dir, 'static', 'images')
 os.makedirs(IMAGES_DIR, exist_ok=True)
@@ -97,27 +100,49 @@ def extract_article_details(url):
 
 
 def download_images(image_urls, story_id):
-    """Download images to IMAGES_DIR. Returns list of dicts with url and local_path."""
+    """Download images to IMAGES_DIR. Returns list of dicts with url, local_path, width, height, and aspect_ratio."""
     downloaded = []
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     for index, img_url in enumerate(image_urls):
         try:
-            resp = requests.get(img_url, headers=headers, stream=True, timeout=10)
+            resp = requests.get(img_url, headers=headers, timeout=10)
             resp.raise_for_status()
+            
+            # Verify and parse size using PIL
+            img = Image.open(io.BytesIO(resp.content))
+            width, height = img.size
+            
+            # Filter by size >= 250px
+            if width < 250 or height < 250:
+                print(f"  Skipping image {img_url}: size too small ({width}x{height})")
+                continue
+                
+            # Filter out extreme aspect ratios (keep 0.5 to 2.5)
+            aspect_ratio = width / height
+            if aspect_ratio < 0.5 or aspect_ratio > 2.5:
+                print(f"  Skipping image {img_url}: extreme aspect ratio ({aspect_ratio:.2f})")
+                continue
+                
             filename = f"story_{story_id}_{index}.jpg"
             filepath = os.path.join(IMAGES_DIR, filename)
+            
+            # Write to disk
             with open(filepath, 'wb') as f:
-                for chunk in resp.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                f.write(resp.content)
+                
             downloaded.append({
                 'url': img_url,
-                'local_path': f'/images/{filename}'
+                'local_path': f'/images/{filename}',
+                'width': width,
+                'height': height,
+                'aspect_ratio': round(aspect_ratio, 2)
             })
-        except Exception:
-            pass  # Skip failures silently
+        except Exception as e:
+            print(f"  Error downloading image {img_url}: {e}")
     return downloaded
+
 
 
 def clean_story(title, raw_summary):
@@ -210,6 +235,57 @@ Respond ONLY with valid JSON. Do not include markdown formatting or backticks ar
     except Exception as e:
         print(f"Error calling LLM: {e}")
         return None
+
+def generate_approved_summary_llm(stories):
+    if not stories:
+        return "No approved stories available."
+
+    if not API_KEY or API_KEY == "your_openrouter_api_key_here":
+        # Fallback simple textual analysis
+        categories = set(s.get("category", "Uncategorized") for s in stories)
+        count = len(stories)
+        if count == 1:
+            return f"Today's episode features 1 story in {list(categories)[0]}. The show will focus on this single core update."
+        else:
+            cats_str = ", ".join(list(categories))
+            return f"Today's episode features {count} stories covering {cats_str}. The discussion will weave these topics together, highlighting the latest releases and research developments."
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    story_list_str = ""
+    for idx, s in enumerate(stories):
+        story_list_str += f"{idx+1}. [{s.get('category', 'General')}] {s.get('title')}\nSummary: {s.get('clean_summary')}\n\n"
+
+    system_prompt = """You are a technical producer for a daily AI news podcast called AIPulse.
+Analyze the list of approved stories for today's episode and write a cohesive, professional 2-3 sentence overview explaining the central theme, common threads, or the overall direction/focus of the podcast episode based on these topics. Make it sound like a compelling teaser or episode description. Do not list them mechanically."""
+
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Approved Stories:\n{story_list_str}"}
+        ],
+        "temperature": 0.5
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=10)
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"].strip()
+        else:
+            print(f"LLM Summary API Error: Status {response.status_code}")
+    except Exception as e:
+        print(f"Error generating approved summary: {e}")
+    
+    # Fallback if API fails
+    categories = set(s.get("category", "Uncategorized") for s in stories)
+    cats_str = ", ".join(list(categories))
+    return f"Today's episode features {len(stories)} stories covering {cats_str}."
+
 
 def run_cleaner():
     print("Running AI Technical Cleaner on scraped tech stories...")

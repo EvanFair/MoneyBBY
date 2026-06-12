@@ -179,18 +179,28 @@ def get_trending_tags():
     raw_tags = db.get_trending_tags()
     return [{"tag": tag, "count": count} for tag, count in raw_tags]
 
+APPROVED_SUMMARY_CACHE = {"key": None, "summary": None}
+
 @app.get("/api/approved-summary")
 def get_approved_summary():
     stories = db.get_stories_by_status("approved")
     if not stories:
-        return {"summary": "No approved stories available."}
-    lines = []
-    for s in stories:
-        cat = s.get("category", "Uncategorized")
-        title = s.get("title", "Untitled")
-        lines.append(f"[{cat}] {title}")
-    summary_text = "Approved Stories:\n" + "\n".join(lines)
+        return {"summary": "No approved stories available.", "count": 0}
+    
+    # Generate cache key based on sorted IDs of approved stories
+    story_ids = sorted([s["id"] for s in stories])
+    cache_key = ",".join(map(str, story_ids))
+    
+    global APPROVED_SUMMARY_CACHE
+    if APPROVED_SUMMARY_CACHE["key"] == cache_key:
+        summary_text = APPROVED_SUMMARY_CACHE["summary"]
+    else:
+        summary_text = cleaner.generate_approved_summary_llm(stories)
+        APPROVED_SUMMARY_CACHE["key"] = cache_key
+        APPROVED_SUMMARY_CACHE["summary"] = summary_text
+        
     return {"summary": summary_text, "count": len(stories)}
+
 
 # ---------------------------------------------------------------------------
 # Static file mounts — MUST come after all API route definitions
