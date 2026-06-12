@@ -40,6 +40,12 @@ CATEGORIES = [
 # Patterns to skip for ad/tracker images
 _SKIP_PATTERNS = re.compile(r'pixel|tracking|spacer|logo|icon|avatar|1x1', re.IGNORECASE)
 
+# Patterns to skip generic placeholder social thumbnails, gradient banners, or generic page screenshots
+_SKIP_IMAGE_URL_PATTERNS = re.compile(
+    r'social-thumbnails|gradient\.png|placeholder|logo-square|favicon|default_bg|header-bg|menu|banner',
+    re.IGNORECASE
+)
+
 
 def extract_article_details(url):
     """GET the article URL, parse with BeautifulSoup, extract full_text and image_urls."""
@@ -60,10 +66,12 @@ def extract_article_details(url):
         # Extract images
         image_urls = []
 
-        # Try og:image first
+        # Try og:image first (if not a generic placeholder/social thumbnail)
         og_image = soup.find('meta', property='og:image')
         if og_image and og_image.get('content'):
-            image_urls.append(urljoin(url, og_image['content']))
+            og_url = urljoin(url, og_image['content'])
+            if not _SKIP_IMAGE_URL_PATTERNS.search(og_url):
+                image_urls.append(og_url)
 
         # Then all <img> tags
         for img in soup.find_all('img', src=True):
@@ -77,6 +85,11 @@ def extract_article_details(url):
             if _SKIP_PATTERNS.search(src):
                 continue
 
+            # Filter out generic layouts/bannering
+            abs_url = urljoin(url, src)
+            if _SKIP_IMAGE_URL_PATTERNS.search(abs_url):
+                continue
+
             # Check dimensions if available
             width = img.get('width')
             height = img.get('height')
@@ -88,7 +101,6 @@ def extract_article_details(url):
             except (ValueError, TypeError):
                 pass
 
-            abs_url = urljoin(url, src)
             if abs_url not in image_urls:
                 image_urls.append(abs_url)
 
@@ -147,30 +159,131 @@ def download_images(image_urls, story_id):
 
 def clean_story(title, raw_summary):
     if not API_KEY or API_KEY == "your_openrouter_api_key_here":
-        # Fallback heuristic classifier for development/offline testing
+        # Smart local heuristic classifier for offline testing/development
         is_pos = True
         
-        # Simple heuristic mapping for categories
         lower_title = title.lower()
+        lower_summary = raw_summary.lower() if raw_summary else ""
+        combined_text = lower_title + " " + lower_summary
+        
+        # 1. Determine Category
         if "repo" in lower_title or "github" in lower_title:
             cat = "Open Source Repository"
         elif "paper" in lower_title or "research" in lower_title or "arxiv" in lower_title:
             cat = "Research Paper"
-        elif "gpu" in lower_title or "nvidia" in lower_title or "hardware" in lower_title or "vram" in lower_title:
+        elif "gpu" in lower_title or "nvidia" in lower_title or "hardware" in lower_title or "vram" in lower_title or "tpu" in lower_title:
             cat = "Hardware & GPU Infrastructure"
-        elif "model" in lower_title or "claude" in lower_title or "llama" in lower_title or "gpt" in lower_title:
+        elif "model" in lower_title or "claude" in lower_title or "llama" in lower_title or "gpt" in lower_title or "deepseek" in lower_title or "gemini" in lower_title or "weights" in lower_title:
             cat = "Model Release"
+        elif "tool" in lower_title or "sdk" in lower_title or "api" in lower_title or "framework" in lower_title or "agentic" in lower_title or "compiler" in lower_title:
+            cat = "Developer Tooling & SDKs"
+        elif "saas" in lower_title or "product" in lower_title or "app" in lower_title or "startup" in lower_title or "business" in lower_title:
+            cat = "AI SaaS & Consumer Product"
+        elif "robot" in lower_title or "embodied" in lower_title or "humanoid" in lower_title or "manipulation" in lower_title:
+            cat = "Robotics & Embodied AI"
+        elif "safety" in lower_title or "alignment" in lower_title or "policy" in lower_title or "ethics" in lower_title or "risk" in lower_title:
+            cat = "Safety & Alignment"
         else:
-            cat = random.choice(CATEGORIES)
+            cat = "Model Release"
             
-        summary_clean = f"An interesting development in the AI space: {title}. This covers recent advancements that could have significant impacts for builders."
+        # 2. Dynamic Score Calculation based on keywords
+        score = 5  # Base score
+        
+        # High value technical/actionable terms
+        high_value_keywords = [
+            "release", "open-source", "framework", "agent", "benchmark", "quantization", 
+            "fine-tuning", "vram", "performance", "local", "productivity", "tip", "tutorial",
+            "guide", "speedup", "efficiency", "frugal", "low-cost", "fast", "runs on",
+            "weights", "free", "diy", "self-host", "tool"
+        ]
+        # Low value generic/corporate/hype terms
+        low_value_keywords = [
+            "partners", "announces", "market", "policy", "funding", "invests", 
+            "legal", "court", "lawsuit", "ethics", "gulag", "soul-crushing", "regulates",
+            "stock", "ceo", "board", "merger", "acquisition"
+        ]
+        
+        for kw in high_value_keywords:
+            if kw in combined_text:
+                score += 1
+        for kw in low_value_keywords:
+            if kw in combined_text:
+                score -= 1
+                
+        # Limit score between 3 and 9 (leaves 10 for absolute human-curated excellence)
+        score = max(3, min(9, score))
+        
+        # 3. Dynamic Niche Tags Extraction
+        tags = []
+        tag_mappings = {
+            "agent": "AI Agents",
+            "quantiz": "Quantization",
+            "gguf": "Quantization",
+            "gpu": "Hardware",
+            "vram": "Hardware",
+            "local": "Local Tech",
+            "fine-tune": "Fine-Tuning",
+            "lora": "Fine-Tuning",
+            "rag": "RAG",
+            "vector": "RAG",
+            "search": "Search/Retrieval",
+            "robot": "Robotics",
+            "embodied": "Robotics",
+            "paper": "Research",
+            "research": "Research",
+            "repo": "Open Source",
+            "github": "Open Source",
+            "productivity": "Productivity",
+            "speed": "Performance",
+            "efficiency": "Optimization"
+        }
+        for kw, tag_val in tag_mappings.items():
+            if kw in combined_text:
+                if tag_val not in tags:
+                    tags.append(tag_val)
+                    
+        if not tags:
+            tags = ["Cutting-Edge Tech"]
+        else:
+            tags = tags[:3]
+            
+        # 4. Clean summary builder
+        clean_text = raw_summary or ""
+        clean_text = re.sub(r'<[^>]+>', '', clean_text)
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+        
+        # Split sentences
+        sentences = re.split(r'(?<=[.!?]) +', clean_text)
+        sentences = [s for s in sentences if s and not s.startswith("Sign up") and not s.startswith("log into") and "cookie" not in s.lower() and "subscribe" not in s.lower()]
+        
+        if len(sentences) >= 2:
+            summary_clean = " ".join(sentences[:3])
+        else:
+            summary_clean = f"A notable update on {title}. This covers recent advancements that could have significant impacts for builders."
+            
+        if len(summary_clean) > 350:
+            summary_clean = summary_clean[:350] + "..."
+            
+        # 5. Value explanation
+        explanation = "A noteworthy development in the tech and AI ecosystem relevant to optimizing workflows."
+        if "Open Source" in tags:
+            explanation = "An open-source repository that developers can use or self-host to save time."
+        elif "Robotics" in tags:
+            explanation = "New developments in embodied AI and robotic control algorithms."
+        elif "Hardware" in tags:
+            explanation = "Hardware specifications and memory footprint optimizations for running models."
+        elif "AI Agents" in tags:
+            explanation = "An agentic framework that can automate complex browser or API tasks."
+        elif "Productivity" in tags:
+            explanation = "Practical tip to simplify daily workflows and save hours of manual work."
+            
         return {
             "is_positive": is_pos,
             "category": cat,
             "clean_summary": summary_clean,
-            "value_score": 5,
-            "value_explanation": "A noteworthy development in the AI ecosystem relevant to developers and builders.",
-            "niche_tags": ["AI"]
+            "value_score": score,
+            "value_explanation": explanation,
+            "niche_tags": tags
         }
 
     url = "https://openrouter.ai/api/v1/chat/completions"
