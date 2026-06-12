@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoodNewsCast AI - Control Room</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <span class="logo-icon">✨</span>
+                <h2>GoodNewsCast<span>.AI</span></h2>
+            </div>
+            <nav class="nav-links">
+                <button class="nav-btn active" data-tab="curate">
+                    <span class="btn-icon">📰</span> Feed Curation
+                </button>
+                <button class="nav-btn" data-tab="episodes">
+                    <span class="btn-icon">🎙️</span> Episodes List
+                </button>
+                <button class="nav-btn" data-tab="settings">
+                    <span class="btn-icon">⚙️</span> Configuration
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Status: <span class="status-indicator online"></span> Active</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Curate Tab -->
+            <section id="tab-curate" class="tab-content active">
+                <header class="tab-header">
+                    <div>
+                        <h1>Feed Curation</h1>
+                        <p class="subtitle">Review, edit, and approve stories for the next episode</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-scrape">
+                        <span>🔄</span> Scrape New Stories
+                    </button>
+                </header>
+
+                <div class="feed-stats">
+                    <div class="stat-card">
+                        <h3>Scraped Pending</h3>
+                        <p id="stat-scraped">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Approved Today</h3>
+                        <p id="stat-approved">0</p>
+                    </div>
+                </div>
+
+                <div class="story-list" id="story-list-container">
+                    <div class="loader">Loading wholesome stories...</div>
+                </div>
+            </section>
+
+            <!-- Episodes Tab -->
+            <section id="tab-episodes" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Episodes List</h1>
+                        <p class="subtitle">Manage, preview, and review generated show outputs</p>
+                    </div>
+                    <button class="btn btn-success" id="btn-create-episode">
+                        <span>🎙️</span> Generate Daily Episode
+                    </button>
+                </header>
+
+                <div class="episodes-layout">
+                    <!-- Left: Episodes Grid -->
+                    <div class="episodes-column">
+                        <div class="episodes-list" id="episodes-list-container">
+                            <div class="loader">Loading episodes...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Episode Player Detail -->
+                    <div class="episodes-column">
+                        <div class="episode-detail-card" id="episode-detail-container">
+                            <div class="detail-placeholder">
+                                <span>📻</span>
+                                <h3>Select an episode to view script & outputs</h3>
+                                <p>Generate or select an episode from the left list.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="tab-settings" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Configuration</h1>
+                        <p class="subtitle">Manage system prompt templates and settings</p>
+                    </div>
+                </header>
+
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h2>System Environment</h2>
+                        <p class="desc">SQLite Database and local audio/video folders are fully initialized.</p>
+                        <div class="env-status">
+                            <div class="env-item">
+                                <span class="env-label">DB Path:</span>
+                                <span class="env-val">backend/goodnews.db</span>
+                            </div>
+                            <div class="env-item">
+                                <span class="env-label">FFmpeg Binary:</span>
+                                <span class="env-val" id="ffmpeg-status">Active (Local Path Mapping)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">Pipeline triggered successfully</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
