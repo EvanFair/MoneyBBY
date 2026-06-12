@@ -1,0 +1,162 @@
+[Speaker 1]
+All right, so you want to do the back end. So,
+
+[Speaker 2]
+Like? How it operates. You might want to pause the music.
+
+[Speaker 1]
+Oh, true. Well, it knows, um, like, who's talking, and
+
+[Speaker 2]
+It's music
+
+[Speaker 1]
+Or not, so?
+
+[Speaker 2]
+If we. We need to scrape stories. Somehow, we need to find good news stories on the internet, like an
+
+[Speaker 1]
+Rss, or something like that, like, stack Overflow, or yeah. There has to be a a scraper of some sort. Somehow, we have to get stories number one.
+
+[Speaker 2]
+So, like, basically, what we're gonna do is, it's gonna be a good news story. Thing.
+
+[Speaker 1]
+Okay, so
+
+[Speaker 2]
+Number one is getting the good news stories. Yeah, there
+
+[Speaker 1]
+Has to be infrastructure to. Get the first. Yeah, it doesn't
+
+[Speaker 2]
+Get on Reddit. It has to get on like actual news articles and. Deciding them would also be nice. Um.
+
+I don't know if, like, how specific if we want to do only us-based or like world-based? But
+
+[Speaker 1]
+You'd have different sections of that, like you could have a us-based Global base and then small. Like, like how the dodo has have you? Have you seen the dodo? It's just like, basically like a wholesome like animal story. Like, oh, I found a squirrel in the backyard and I, I let it grow up. And now, it comes back to me all the time when it grows up. Yeah,
+
+[Speaker 2]
+Like something
+
+[Speaker 1]
+Like that. Yeah. So, so there has to be an infrastructure to get and select.
+
+Maybe, like? Like a dashboard or something that like that, that we can like review what the agents have gotten. And yeah, and
+
+[Speaker 2]
+There,
+
+[Speaker 1]
+There would be like, a time. There be a time limit. So, like if we miss reviewing it for the day, it'll just automatically post whereas like you can have like? We're controlling it, or the AI is just like automatically choosing what it is. Yeah, so I
+
+[Speaker 2]
+Think we should have, like an AI. Agents that goes out every morning. And so I find finds five stories, and then it basically like, writes these stories. I'm not, writes it. It finds like the lengths and articles, and like, if there's actual articles and actual news. Brings it in. Um, basically bring in five stories, and then there should be a dashboard like, you said, where we could say. Except reject.
+
+[Speaker 1]
+Yeah. And then.
+
+[Speaker 2]
+From there, it can, like, learn. What do we like, what we don't like, but any of the ones we accept it can go to a? To. A repository, so it basically goes into a queue, like all the ones that have been accepted. Um, goes to a queue, but I don't want it to
+
+[Speaker 1]
+Stay in that queue for a certain amount of time. It must expire, like, if they, if a news story isn't talked about like, you don't want the
+
+[Speaker 2]
+Um, the like, system
+
+[Speaker 1]
+To hold on to a two-month-old yeah like news article or something like that, and then come up. And it's like completely irrelevant, or the news has changed, like it still has to be fresh in the queue.
+
+To the queue, then there has to be like another layer of. Infrastructure that actually builds the like podcast or whatever it may be. Yeah, so I
+
+[Speaker 2]
+Think. Obviously. We should do. Facebook is number one, so we have to have a Facebook post. With photos. You know.
+
+[Speaker 1]
+Yeah,
+
+[Speaker 2]
+Then, well, there
+
+[Speaker 1]
+Has to be a background if we want to do a YouTube video. There has to be a background generated. Each day, maybe topical, like one, one aspect of it, is that it reviews all the information, and like, maybe the transcript, like after that transcript is created. And then it has, like? Um,
+
+[Speaker 2]
+So I think we should just post to all forums.
+
+[Speaker 1]
+Yeah.
+
+[Speaker 2]
+So, I think we need to do videos. Like? On YouTube. Um, and videos on Instagram Tech talk. Then posts on Instagram and Facebook and Twitter. I think we should start with one tonight.
+
+[Speaker 1]
+That's what I'm saying.
+
+[Speaker 2]
+I think
+
+[Speaker 1]
+The easiest would be to make a YouTube channel and just like post from there or something you think that's not easy
+
+[Speaker 2]
+If they do. Edit unless this video editing thing works, then that would be freaking brilliant.
+
+[Speaker 1]
+Well, my suggestion is that we make the pipeline. So, like, it's selection, then it's. Um, it's, it's. Selection, then the queue
+
+[Speaker 2]
+Curating. I don't know if I need the Q.
+
+[Speaker 1]
+Yeah, well, it's just gonna be what's selected for the day, so, and then whatever's selected for the day. You have, like, a time period. Like, maybe at 12 o'clock, like, or one o'clock like after lunch or something, and then you have the generation of the actual podcast or
+
+[Speaker 2]
+Content
+
+[Speaker 1]
+Content, and then I was saying that, like, if it's just a podcast like format, like if it's just like a like a chat, then you can have. After that's created, you can have.
+
+Generated after that. That's made so, like, you could have like a generalized prompt maker, so you have your entire transcript. And then, that goes into an image prompt, and then that prompt is used to make the background to the to the video or something like that. That's what I was kind of thinking. So, then, it's like a themed background for for it. And maybe we could get even more, um? Involved and make it like, kind of interactive. Like, if one's about a campfire like story or something like that where you're sitting around like, or some kind of story that involves like hiking or Outdoors, like, maybe even hiking, like you could just have like a person hiking up a mountain and then, like the trees like, kind of like moving, not like a complex video. But like something, like in the background, you know what I mean? Oh,
+
+[Speaker 2]
+For the podcast. Yeah, yeah, so
+
+[Speaker 1]
+It's like, it's not, yeah.
+
+To add. Um, let's talk about the podcast like? Section of it.
+
+Um. I mean, we wanted to be positive. But I feel like we have to have different angles. Like? We could add like a pessimist. Into it, and then
+
+[Speaker 2]
+Not a person is, but it, like. Like someone, a literal who's very literal,
+
+[Speaker 1]
+Yeah, okay, like, yes? The one character is very literal and then.
+
+Yeah, I, I guess I don't want to have a character that's kind of like? Well, willing to like, just spin everything good, like, hey, we bombed Iran, and you know, that's not the worst thing because? You know they have? But I don't know.
+
+[Speaker 2]
+Yeah, yeah, I don't
+
+[Speaker 1]
+Want it to be like, sense, senseless, essentially like it has to actually have, like a valid point, not just like making things positive when it's really not that positive. Yeah. Um, but the the format that I sent you is that one person reads the news, and then the other one comments comments on it, so I don't know if we want two commenters and one reader. So, maybe like one positive person, one literal person. And they they kind of feed off of each other, like each get a, uh, a choice. And then the the literal person, and then the positive person they are fed with, like, some kind of overall arching, um. Like, prompt, essentially like this agent prompt, like, is fed the news story, and then they have their like base personality, and they go through and they answer based off the base personality and then the other one gets it too. They have to be two separate like sections with their own personalities. Essentially.
+
+[Speaker 2]
+Um. I just. We should go a little bit earlier in the process, too. Choosing the stories before you even get there. Because somehow we have. Designer rule set that? Identifies positive stories
+
+[Speaker 1]
+In some way.
+
+[Speaker 2]
+And I think there should be rules as like. If it's a story about, like? Saving a life or a personal story about saving a life or? A pet or an animal is probably good content. Um. Anything that can go a little bit viral, but that brings. People together. Yeah.
+
+I
+
+[Speaker 1]
+Agree. That's an important part of the infrastructure. I think that's a good start. We'll, we'll see. What comes out of this?
