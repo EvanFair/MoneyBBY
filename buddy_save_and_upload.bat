@@ -14,7 +14,7 @@ git add .
 git commit -m "%MSG%"
 echo.
 echo Uploading to GitHub...
-git push origin buddy-branch
+git push origin JobsonBranch
 echo.
 echo =====================================================
 echo  YOUR WORK IS SAVED! Now tell Evan to run

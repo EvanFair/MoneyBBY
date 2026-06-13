@@ -11,7 +11,7 @@ git checkout main
 git pull origin main
 echo.
 echo Step 2: Merging your branch into main...
-git merge buddy-branch
+git merge JobsonBranch
 echo.
 echo Step 3: Uploading the updated main to GitHub...
 git push origin main
