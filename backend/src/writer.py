@@ -29,7 +29,7 @@ def run_agent_turn(agent_name, personality_prompt, context_story, dialogue_histo
         # Fallback template-based responses for local testing
         if agent_name == "Alex":
             if len(dialogue_history) == 0:
-                return f"Welcome back to GoodNewsCast. Let's talk about our next story: {context_story['title']}. Here is what happened: {context_story['clean_summary']}"
+                return f"Welcome back to AIPulse. Let's talk about our next story: {context_story['title']}. Here is what happened: {context_story['clean_summary']}"
             else:
                 return f"Thanks for those insights, everyone. Let's move on to the next segment."
         elif agent_name == "Joy":
@@ -101,8 +101,8 @@ def generate_script_for_stories(stories):
     script = []
     
     # 1. Episode Intro
-    intro_story = stories[0] if stories else {"title": "Today's Good News", "clean_summary": "", "category": "General"}
-    intro_prompt = f"{anchor_persona}\n\nTask: Introduce the podcast episode 'GoodNewsCast' and welcome the audience."
+    intro_story = stories[0] if stories else {"title": "Today's AI News", "clean_summary": "", "category": "General"}
+    intro_prompt = f"{anchor_persona}\n\nTask: Introduce the podcast episode 'AIPulse' and welcome the audience."
     intro_line = run_agent_turn("Alex", intro_prompt, intro_story, [])
     script.append({"speaker": "Alex", "text": intro_line})
 
@@ -128,7 +128,7 @@ def generate_script_for_stories(stories):
 
     return script
 
-def create_daily_episode(episode_title="Daily Wholesome Round-up"):
+def create_daily_episode(episode_title="Daily AIPulse Tech Round-up"):
     # Fetch approved stories
     approved = db.get_stories_by_status("approved")
     if not approved:

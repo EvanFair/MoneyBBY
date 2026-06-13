@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoodNewsCast AI - Control Room</title>
+    <title>AIPulse - AI News Control Room</title>
     <link rel="stylesheet" href="style.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,8 +15,8 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo-area">
-                <span class="logo-icon">✨</span>
-                <h2>GoodNewsCast<span>.AI</span></h2>
+                <span class="logo-icon">⚡</span>
+                <h2>AIPulse</h2>
             </div>
             <nav class="nav-links">
                 <button class="nav-btn active" data-tab="curate">
@@ -49,9 +49,16 @@
                         <h1>Feed Curation</h1>
                         <p class="subtitle">Review, edit, and approve stories for the next episode</p>
                     </div>
-                    <button class="btn btn-primary" id="btn-scrape">
-                        <span>🔄</span> Scrape New Stories
-                    </button>
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <div class="limit-slider-container">
+                            <span class="limit-slider-label">Limit:</span>
+                            <input type="range" id="feed-limit" min="5" max="100" step="5" value="10" class="volume-slider">
+                            <span id="feed-limit-val" class="volume-label">10</span>
+                        </div>
+                        <button class="btn btn-primary" id="btn-scrape">
+                            <span>🔄</span> Scrape New Stories
+                        </button>
+                    </div>
                 </header>
 
                 <div class="feed-stats">
@@ -65,8 +72,33 @@
                     </div>
                 </div>
 
-                <div class="story-list" id="story-list-container">
-                    <div class="loader">Loading wholesome stories...</div>
+                <div class="curate-split-pane">
+                    <!-- LEFT: Story Cards -->
+                    <div class="curate-feed-column">
+                        <div class="story-list" id="story-list-container">
+                            <div class="loader">Loading AI stories...</div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Sidebar -->
+                    <div class="curate-sidebar-column">
+                        <div class="sidebar-card">
+                            <h3>✅ Approved Today</h3>
+                            <div id="approved-today-list">
+                                <p style="color:var(--text-muted);font-size:13px;">No approved stories yet.</p>
+                            </div>
+                        </div>
+                        <div class="sidebar-card">
+                            <h3>🧭 Episode Direction</h3>
+                            <p id="approved-summary-text" style="color:var(--text-secondary);font-size:14px;line-height:1.5;">Approve stories to see a summary...</p>
+                        </div>
+                        <div class="sidebar-card">
+                            <h3>🔥 Trending Niche Topics</h3>
+                            <div id="trending-tags-container">
+                                <p style="color:var(--text-muted);font-size:13px;">Scrape and clean stories to see trends...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -112,19 +144,54 @@
                     </div>
                 </header>
 
-                <div class="settings-grid">
+                <div class="settings-grid" style="gap:24px;">
                     <div class="settings-card">
                         <h2>System Environment</h2>
                         <p class="desc">SQLite Database and local audio/video folders are fully initialized.</p>
                         <div class="env-status">
                             <div class="env-item">
                                 <span class="env-label">DB Path:</span>
-                                <span class="env-val">backend/goodnews.db</span>
+                                <span class="env-val">backend/aipulse.db</span>
                             </div>
                             <div class="env-item">
                                 <span class="env-label">FFmpeg Binary:</span>
                                 <span class="env-val" id="ffmpeg-status">Active (Local Path Mapping)</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h2>News Sources</h2>
+                        <p class="desc">Configure RSS feeds, aggregators, and other news sources to scrape.</p>
+                        <div class="add-source-form" id="add-source-form">
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">Name</label>
+                                <input type="text" id="source-name" placeholder="e.g. TechCrunch AI">
+                            </div>
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">URL</label>
+                                <input type="text" id="source-url" placeholder="https://feeds.example.com/rss">
+                            </div>
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">Type</label>
+                                <select id="source-type">
+                                    <option value="rss">RSS</option>
+                                    <option value="hn">Hacker News</option>
+                                    <option value="github">GitHub</option>
+                                    <option value="huggingface">Hugging Face</option>
+                                    <option value="google_news">Google News</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">Volume</label>
+                                <input type="range" min="1" max="30" value="10" class="volume-slider" id="source-volume">
+                            </div>
+                            <div style="display:flex;align-items:end;">
+                                <button class="btn btn-primary" id="btn-add-source" style="white-space:nowrap;">Add Source</button>
+                            </div>
+                        </div>
+                        <div id="sources-list-container">
+                            <div class="loader">Loading sources...</div>
                         </div>
                     </div>
                 </div>
@@ -204,6 +271,19 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Story Detail Modal Overlay -->
+    <div id="story-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-glass); padding-bottom:12px; margin-bottom:16px;">
+                <h2 style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--text-primary);">Curator Control Card</h2>
+                <button class="modal-close-btn" id="modal-close">&times;</button>
+            </div>
+            <div id="modal-body-content">
+                <!-- Dynamic detailed view of stories with full_text, summaries, and edits -->
+            </div>
+        </div>
     </div>
 
     <!-- Notification Toast -->
