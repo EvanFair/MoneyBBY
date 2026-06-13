@@ -44,13 +44,11 @@
                         <p class="subtitle">Review, edit, and approve stories for the next episode</p>
                     </div>
                     <div style="display:flex;gap:12px;align-items:center;">
-                        <select id="feed-limit" class="feed-limit-select">
-                            <option value="5">Top 5</option>
-                            <option value="10" selected>Top 10</option>
-                            <option value="15">Top 15</option>
-                            <option value="20">Top 20</option>
-                            <option value="30">Top 30</option>
-                        </select>
+                        <div class="limit-slider-container">
+                            <span class="limit-slider-label">Limit:</span>
+                            <input type="range" id="feed-limit" min="5" max="100" step="5" value="10" class="volume-slider">
+                            <span id="feed-limit-val" class="volume-label">10</span>
+                        </div>
                         <button class="btn btn-primary" id="btn-scrape">
                             <span>🔄</span> Scrape New Stories
                         </button>
@@ -147,7 +145,7 @@
                         <div class="env-status">
                             <div class="env-item">
                                 <span class="env-label">DB Path:</span>
-                                <span class="env-val">backend/goodnews.db</span>
+                                <span class="env-val">backend/aipulse.db</span>
                             </div>
                             <div class="env-item">
                                 <span class="env-label">FFmpeg Binary:</span>

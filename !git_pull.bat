@@ -1,7 +1,7 @@
 @echo off
 cd /d "%~dp0"
 echo.
-echo === GoodNewsCast Git Pull ===
+echo === AIPulse Git Pull ===
 echo.
 git pull origin main
 echo.

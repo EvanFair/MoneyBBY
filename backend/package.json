@@ -1,7 +1,7 @@
 {
-  "name": "goodnewscast-backend",
+  "name": "aipulse-backend",
   "version": "1.0.0",
-  "description": "Backend API, scraper, and agent scriptwriter for GoodNewsCast AI",
+  "description": "Backend API, scraper, and agent scriptwriter for AIPulse AI",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

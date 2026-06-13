@@ -2,7 +2,7 @@ import sqlite3
 import os
 import json
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "goodnews.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "aipulse.db")
 
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)

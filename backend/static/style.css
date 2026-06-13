@@ -314,7 +314,7 @@ body {
 }
 
 .category-select,
-.feed-limit-select {
+.limit-slider-container {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--border-glass);
     border-radius: 10px;
@@ -323,7 +323,18 @@ body {
     font-size: 14px;
     font-weight: 600;
     outline: none;
-    cursor: pointer;
+}
+
+.limit-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.limit-slider-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
 }
 
 .action-btns {

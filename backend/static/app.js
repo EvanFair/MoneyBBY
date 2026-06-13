@@ -51,7 +51,14 @@ function initFeedCuration() {
     }
 
     const feedLimit = document.getElementById("feed-limit");
+    const feedLimitVal = document.getElementById("feed-limit-val");
     if (feedLimit) {
+        feedLimit.addEventListener("input", (e) => {
+            const val = e.target.value;
+            if (feedLimitVal) {
+                feedLimitVal.textContent = val == 100 ? "All" : val;
+            }
+        });
         feedLimit.addEventListener("change", () => {
             loadCurationStories();
         });
@@ -80,9 +87,12 @@ function loadCurationStories() {
 
     const limitEl = document.getElementById("feed-limit");
     const limit = limitEl ? limitEl.value : 10;
+    
+    // If limit is 100, we show all (omit limit param)
+    const limitParam = limit == 100 ? "" : `&limit=${limit}`;
 
     Promise.all([
-        fetch(`${API_BASE}/api/stories?status=scraped&limit=${limit}`).then(res => res.json()),
+        fetch(`${API_BASE}/api/stories?status=scraped${limitParam}`).then(res => res.json()),
         fetch(`${API_BASE}/api/stories?status=approved`).then(res => res.json())
     ]).then(([scraped, approved]) => {
         document.getElementById("stat-scraped").textContent = scraped.length;

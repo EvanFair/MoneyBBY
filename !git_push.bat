@@ -1,7 +1,7 @@
 @echo off
 cd /d "%~dp0"
 echo.
-echo === GoodNewsCast Git Push ===
+echo === AIPulse Git Push ===
 echo.
 git config user.email "evan.fair@gmail.com"
 git config user.name "Evan"
