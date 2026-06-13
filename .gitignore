@@ -1,0 +1,26 @@
+# Python compilation
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and DB files (usually local config)
+*.db-journal
+
+# Local outputs
+backend/output/episode_*.mp3
+backend/output/episode_*.mp4
+
+# Operating System files
+.DS_Store
+Thumbs.db
