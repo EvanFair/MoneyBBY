@@ -117,4 +117,178 @@
                 <div class="episodes-layout">
                     <!-- Left: Episodes Grid -->
                     <div class="episodes-column">
-                        <div class="episodes-list" id="episodes-list-contai
+                        <div class="episodes-list" id="episodes-list-container">
+                            <div class="loader">Loading episodes...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Episode Player Detail -->
+                    <div class="episodes-column">
+                        <div class="episode-detail-card" id="episode-detail-container">
+                            <div class="detail-placeholder">
+                                <span>📻</span>
+                                <h3>Select an episode to view script & outputs</h3>
+                                <p>Generate or select an episode from the left list.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="tab-settings" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Configuration</h1>
+                        <p class="subtitle">Manage system prompt templates and settings</p>
+                    </div>
+                </header>
+
+                <div class="settings-grid" style="gap:24px;">
+                    <div class="settings-card">
+                        <h2>System Environment</h2>
+                        <p class="desc">SQLite Database and local audio/video folders are fully initialized.</p>
+                        <div class="env-status">
+                            <div class="env-item">
+                                <span class="env-label">DB Path:</span>
+                                <span class="env-val">backend/aipulse.db</span>
+                            </div>
+                            <div class="env-item">
+                                <span class="env-label">FFmpeg Binary:</span>
+                                <span class="env-val" id="ffmpeg-status">Active (Local Path Mapping)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h2>News Sources</h2>
+                        <p class="desc">Configure RSS feeds, aggregators, and other news sources to scrape.</p>
+                        <div class="add-source-form" id="add-source-form">
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">Name</label>
+                                <input type="text" id="source-name" placeholder="e.g. TechCrunch AI">
+                            </div>
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">URL</label>
+                                <input type="text" id="source-url" placeholder="https://feeds.example.com/rss">
+                            </div>
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">Type</label>
+                                <select id="source-type">
+                                    <option value="rss">RSS</option>
+                                    <option value="hn">Hacker News</option>
+                                    <option value="github">GitHub</option>
+                                    <option value="huggingface">Hugging Face</option>
+                                    <option value="google_news">Google News</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:6px;">Volume</label>
+                                <input type="range" min="1" max="30" value="10" class="volume-slider" id="source-volume">
+                            </div>
+                            <div style="display:flex;align-items:end;">
+                                <button class="btn btn-primary" id="btn-add-source" style="white-space:nowrap;">Add Source</button>
+                            </div>
+                        </div>
+                        <div id="sources-list-container">
+                            <div class="loader">Loading sources...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Social Accounts Tab -->
+            <section id="tab-accounts" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Social Accounts</h1>
+                        <p class="subtitle">Connect your platforms to enable automated content distribution</p>
+                    </div>
+                    <div class="accounts-connected-count">
+                        <span id="connected-count">0</span> of 10 connected
+                    </div>
+                </header>
+                <div class="accounts-grid" id="accounts-grid">
+                    <!-- Rendered by JS -->
+                </div>
+                <div class="accounts-note">
+                    <span>ℹ️</span>
+                    Real OAuth integration requires platform developer accounts and backend API keys.
+                    These connections are saved locally and will wire up to real posting endpoints in a future build.
+                </div>
+            </section>
+
+            <!-- Distribute Tab -->
+            <section id="tab-distribute" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Distribute</h1>
+                        <p class="subtitle">Build your distribution flow — drag platforms into the canvas below</p>
+                    </div>
+                </header>
+                <div class="distribute-layout">
+                    <!-- Left: Episode selector -->
+                    <div class="distribute-ep-col">
+                        <div class="section-label">Episodes</div>
+                        <div class="episodes-list" id="distribute-ep-list">
+                            <div class="loader">Loading episodes...</div>
+                        </div>
+                    </div>
+                    <!-- Right: Palette + Flow + Panel -->
+                    <div class="distribute-flow-col">
+                        <!-- Platform Library Palette -->
+                        <div class="platform-palette" id="platform-palette">
+                            <div class="palette-header">
+                                <span class="section-label">Platform Library — drag chips into the flow</span>
+                                <span class="palette-conn-note" id="palette-conn-note"></span>
+                            </div>
+                            <div class="palette-chips-container" id="palette-chips">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                        <!-- Flow Canvas (drop target) -->
+                        <div class="flow-canvas" id="flow-canvas"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleFlowDrop(event)">
+                            <svg id="flow-svg" class="flow-svg"></svg>
+                            <div class="flow-source-node" id="flow-source-node">
+                                <div class="flow-source-icon">🎙️</div>
+                                <div class="flow-source-title" id="flow-source-title">Select an episode →</div>
+                                <div class="flow-source-meta" id="flow-source-meta">No episode selected</div>
+                            </div>
+                            <div class="flow-platform-row" id="flow-platform-row">
+                                <div class="flow-drop-hint">Drag platforms from above to build your distribution flow</div>
+                            </div>
+                        </div>
+                        <!-- Platform Detail Panel -->
+                        <div class="platform-panel" id="platform-panel">
+                            <div class="panel-empty">
+                                <span>☝️</span>
+                                <p>Select an episode, then click a platform node to craft its content</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Story Detail Modal Overlay -->
+    <div id="story-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-glass); padding-bottom:12px; margin-bottom:16px;">
+                <h2 style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--text-primary);">Curator Control Card</h2>
+                <button class="modal-close-btn" id="modal-close">&times;</button>
+            </div>
+            <div id="modal-body-content">
+                <!-- Dynamic detailed view of stories with full_text, summaries, and edits -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">Pipeline triggered successfully</div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -20,4 +20,6 @@ echo =====================================================
 echo  DONE! Main is now updated with your latest work.
 echo  Tell Evan to run his start_day.bat to get
 echo  your changes on his computer.
-echo ============================================
+echo =====================================================
+echo.
+pause

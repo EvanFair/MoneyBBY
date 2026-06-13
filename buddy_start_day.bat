@@ -14,4 +14,6 @@ git checkout JobsonBranch 2>nul || git checkout -b JobsonBranch
 git merge main
 echo.
 echo You are ready to code! You are now on YOUR branch (JobsonBranch).
-echo When you are done working, run buddy_save_and_upload.
+echo When you are done working, run buddy_save_and_upload.bat
+echo.
+pause
