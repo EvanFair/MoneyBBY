@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,6 +70,43 @@
                     <div class="stat-card">
                         <h3>Approved Today</h3>
                         <p id="stat-approved">0</p>
+                    </div>
+                </div>
+
+                <div class="feed-filters">
+                    <div class="filter-group filter-search-group">
+                        <label for="filter-search">🔍 Search Topics</label>
+                        <input type="text" id="filter-search" placeholder="Search title, summary, niche tags...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-source">📻 Source</label>
+                        <select id="filter-source">
+                            <option value="">All Sources</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category">📁 Category</label>
+                        <select id="filter-category">
+                            <option value="">All Categories</option>
+                            <option value="Model Release">Model Release</option>
+                            <option value="Open Source Repository">Open Source Repository</option>
+                            <option value="Research Paper">Research Paper</option>
+                            <option value="Hardware & GPU Infrastructure">Hardware & GPU Infrastructure</option>
+                            <option value="Developer Tooling & SDKs">Developer Tooling & SDKs</option>
+                            <option value="AI SaaS & Consumer Product">AI SaaS & Consumer Product</option>
+                            <option value="Industry & Startups">Industry & Startups</option>
+                            <option value="Robotics & Embodied AI">Robotics & Embodied AI</option>
+                            <option value="Safety & Alignment">Safety & Alignment</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-rating">⭐ Rating (Value Score)</label>
+                        <select id="filter-rating">
+                            <option value="">All Ratings</option>
+                            <option value="high">⭐ 7+ Excellent</option>
+                            <option value="medium">⭐ 5+ Good</option>
+                            <option value="low">⭐ &lt;5 Low</option>
+                        </select>
                     </div>
                 </div>
 
@@ -292,3 +330,125 @@
     <script src="app.js"></script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIPulse - AI News Control Room</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <span class="logo-icon">⚡</span>
+                <h2>AIPulse</h2>
+            </div>
+            <nav class="nav-links">
+                <button class="nav-btn active" data-tab="curate">
+                    <span class="btn-icon">📰</span> Feed Curation
+                </button>
+                <button class="nav-btn" data-tab="episodes">
+                    <span class="btn-icon">🎙️</span> Episodes List
+                </button>
+                <button class="nav-btn" data-tab="settings">
+                    <span class="btn-icon">⚙️</span> Configuration
+                </button>
+                <button class="nav-btn" data-tab="accounts">
+                    <span class="btn-icon">🔗</span> Social Accounts
+                </button>
+                <button class="nav-btn" data-tab="distribute">
+                    <span class="btn-icon">📡</span> Distribute
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Status: <span class="status-indicator online"></span> Active</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Curate Tab -->
+            <section id="tab-curate" class="tab-content active">
+                <header class="tab-header">
+                    <div>
+                        <h1>Feed Curation</h1>
+                        <p class="subtitle">Review, edit, and approve stories for the next episode</p>
+                    </div>
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <div class="limit-slider-container">
+                            <span class="limit-slider-label">Limit:</span>
+                            <input type="range" id="feed-limit" min="5" max="100" step="5" value="10" class="volume-slider">
+                            <span id="feed-limit-val" class="volume-label">10</span>
+                        </div>
+                        <button class="btn btn-primary" id="btn-scrape">
+                            <span>🔄</span> Scrape New Stories
+                        </button>
+                    </div>
+                </header>
+
+                <div class="feed-stats">
+                    <div class="stat-card">
+                        <h3>Scraped Pending</h3>
+                        <p id="stat-scraped">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Approved Today</h3>
+                        <p id="stat-approved">0</p>
+                    </div>
+                </div>
+
+                <div class="curate-split-pane">
+                    <!-- LEFT: Story Cards -->
+                    <div class="curate-feed-column">
+                        <div class="story-list" id="story-list-container">
+                            <div class="loader">Loading AI stories...</div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Sidebar -->
+                    <div class="curate-sidebar-column">
+                        <div class="sidebar-card">
+                            <h3>✅ Approved Today</h3>
+                            <div id="approved-today-list">
+                                <p style="color:var(--text-muted);font-size:13px;">No approved stories yet.</p>
+                            </div>
+                        </div>
+                        <div class="sidebar-card">
+                            <h3>🧭 Episode Direction</h3>
+                            <p id="approved-summary-text" style="color:var(--text-secondary);font-size:14px;line-height:1.5;">Approve stories to see a summary...</p>
+                        </div>
+                        <div class="sidebar-card">
+                            <h3>🔥 Trending Niche Topics</h3>
+                            <div id="trending-tags-container">
+                                <p style="color:var(--text-muted);font-size:13px;">Scrape and clean stories to see trends...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Episodes Tab -->
+            <section id="tab-episodes" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Episodes List</h1>
+                        <p class="subtitle">Manage, preview, and review generated show outputs</p>
+                    </div>
+                    <button class="btn btn-success" id="btn-create-episode">
+                        <span>🎙️</span> Generate Daily Episode
+                    </button>
+                </header>
+
+                <div class="episodes-layout">
+                    <!-- Left: Episodes Grid -->
+                    <div class="episodes-column">
+                        <div class="episodes-list" id="episodes-list-contai
+>>>>>>> 7a9e755 (Refactor backend and frontend: streamline server, scraper, db, renderer, tts, cleaner; update personalities, static UI, deps, and git scripts)

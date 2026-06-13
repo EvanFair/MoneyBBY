@@ -524,6 +524,7 @@ body {
     align-items: center;
 }
 
+<<<<<<< HEAD
 /* =============================================
    ACTION BUTTONS
    ============================================= */
@@ -1961,3 +1962,74 @@ video {
     opacity: 0.9;
     box-shadow: var(--shadow-md);
 }
+
+/* =============================================
+   CURATION FEED FILTERS
+   ============================================= */
+.feed-filters {
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    padding: 18px 24px;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: end;
+    backdrop-filter: blur(10px);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.filter-group label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+}
+
+.filter-group input,
+.filter-group select {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-glass);
+    border-radius: 10px;
+    color: var(--text-primary);
+    padding: 10px 14px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+}
+
+.filter-group input::placeholder {
+    color: var(--text-muted);
+}
+
+@media (max-width: 1024px) {
+    .feed-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .feed-filters {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 12px;
+    }
+}
+=======
+/* =======================================
+>>>>>>> 7a9e755 (Refactor backend and frontend: streamline server, scraper, db, renderer, tts, cleaner; update personalities, static UI, deps, and git scripts)

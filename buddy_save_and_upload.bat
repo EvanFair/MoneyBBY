@@ -20,6 +20,4 @@ echo =====================================================
 echo  YOUR WORK IS SAVED! Now tell Evan to run
 echo  his merge_to_main.bat when you are both ready
 echo  to combine your work into the main version.
-echo =====================================================
-echo.
-pause
+echo ============================================
