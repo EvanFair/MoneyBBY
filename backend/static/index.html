@@ -28,6 +28,12 @@
                 <button class="nav-btn" data-tab="settings">
                     <span class="btn-icon">⚙️</span> Configuration
                 </button>
+                <button class="nav-btn" data-tab="accounts">
+                    <span class="btn-icon">🔗</span> Social Accounts
+                </button>
+                <button class="nav-btn" data-tab="distribute">
+                    <span class="btn-icon">📡</span> Distribute
+                </button>
             </nav>
             <div class="sidebar-footer">
                 <p>Status: <span class="status-indicator online"></span> Active</p>
@@ -118,6 +124,80 @@
                             <div class="env-item">
                                 <span class="env-label">FFmpeg Binary:</span>
                                 <span class="env-val" id="ffmpeg-status">Active (Local Path Mapping)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Social Accounts Tab -->
+            <section id="tab-accounts" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Social Accounts</h1>
+                        <p class="subtitle">Connect your platforms to enable automated content distribution</p>
+                    </div>
+                    <div class="accounts-connected-count">
+                        <span id="connected-count">0</span> of 10 connected
+                    </div>
+                </header>
+                <div class="accounts-grid" id="accounts-grid">
+                    <!-- Rendered by JS -->
+                </div>
+                <div class="accounts-note">
+                    <span>ℹ️</span>
+                    Real OAuth integration requires platform developer accounts and backend API keys.
+                    These connections are saved locally and will wire up to real posting endpoints in a future build.
+                </div>
+            </section>
+
+            <!-- Distribute Tab -->
+            <section id="tab-distribute" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Distribute</h1>
+                        <p class="subtitle">Build your distribution flow — drag platforms into the canvas below</p>
+                    </div>
+                </header>
+                <div class="distribute-layout">
+                    <!-- Left: Episode selector -->
+                    <div class="distribute-ep-col">
+                        <div class="section-label">Episodes</div>
+                        <div class="episodes-list" id="distribute-ep-list">
+                            <div class="loader">Loading episodes...</div>
+                        </div>
+                    </div>
+                    <!-- Right: Palette + Flow + Panel -->
+                    <div class="distribute-flow-col">
+                        <!-- Platform Library Palette -->
+                        <div class="platform-palette" id="platform-palette">
+                            <div class="palette-header">
+                                <span class="section-label">Platform Library — drag chips into the flow</span>
+                                <span class="palette-conn-note" id="palette-conn-note"></span>
+                            </div>
+                            <div class="palette-chips-container" id="palette-chips">
+                                <!-- Rendered by JS -->
+                            </div>
+                        </div>
+                        <!-- Flow Canvas (drop target) -->
+                        <div class="flow-canvas" id="flow-canvas"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleFlowDrop(event)">
+                            <svg id="flow-svg" class="flow-svg"></svg>
+                            <div class="flow-source-node" id="flow-source-node">
+                                <div class="flow-source-icon">🎙️</div>
+                                <div class="flow-source-title" id="flow-source-title">Select an episode →</div>
+                                <div class="flow-source-meta" id="flow-source-meta">No episode selected</div>
+                            </div>
+                            <div class="flow-platform-row" id="flow-platform-row">
+                                <div class="flow-drop-hint">Drag platforms from above to build your distribution flow</div>
+                            </div>
+                        </div>
+                        <!-- Platform Detail Panel -->
+                        <div class="platform-panel" id="platform-panel">
+                            <div class="panel-empty">
+                                <span>☝️</span>
+                                <p>Select an episode, then click a platform node to craft its content</p>
                             </div>
                         </div>
                     </div>
