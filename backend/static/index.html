@@ -1,11 +1,10 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIPulse - AI News Control Room</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +33,9 @@
                 </button>
                 <button class="nav-btn" data-tab="distribute">
                     <span class="btn-icon">📡</span> Distribute
+                </button>
+                <button class="nav-btn" data-tab="pipeline">
+                    <span class="btn-icon">⚡</span> Pipeline
                 </button>
             </nav>
             <div class="sidebar-footer">
@@ -308,6 +310,46 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Pipeline Tab -->
+            <section id="tab-pipeline" class="tab-content">
+                <header class="tab-header">
+                    <div>
+                        <h1>Pipeline</h1>
+                        <p class="subtitle">Run and monitor the daily content automation pipeline</p>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button class="btn btn-outline" id="btn-pipeline-no-publish" onclick="runPipeline(false)">
+                            <span>🔄</span> Run (No Publish)
+                        </button>
+                        <button class="btn btn-success" id="btn-pipeline-publish" onclick="runPipeline(true)">
+                            <span>🚀</span> Run + Publish
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Stats row -->
+                <div class="feed-stats" id="pipeline-stats-row">
+                    <div class="stat-card"><h3>Scraped Today</h3><p id="pl-scraped">—</p></div>
+                    <div class="stat-card"><h3>Approved</h3><p id="pl-approved">—</p></div>
+                    <div class="stat-card"><h3>Carousels</h3><p id="pl-carousels">—</p></div>
+                    <div class="stat-card"><h3>Reels</h3><p id="pl-reels">—</p></div>
+                    <div class="stat-card"><h3>Published</h3><p id="pl-published">—</p></div>
+                </div>
+
+                <!-- Status bar -->
+                <div class="pipeline-status-bar" id="pipeline-status-bar">
+                    <span id="pipeline-status-dot" class="status-indicator"></span>
+                    <span id="pipeline-status-text">Idle — last run: checking...</span>
+                    <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">Auto-refreshes every 30s</span>
+                </div>
+
+                <!-- Log viewer -->
+                <div class="pipeline-log-box" id="pipeline-log-box">
+                    <div style="color:var(--text-muted);padding:16px;">Click a tab to load...</div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -325,130 +367,8 @@
     </div>
 
     <!-- Notification Toast -->
-    <div class="toast" id="toast">Pipeline triggered successfully</div>
+    <div class="toast" id="toast">Saved</div>
 
-    <script src="app.js"></script>
+    <script src="/static/app.js"></script>
 </body>
 </html>
-=======
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIPulse - AI News Control Room</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo-area">
-                <span class="logo-icon">⚡</span>
-                <h2>AIPulse</h2>
-            </div>
-            <nav class="nav-links">
-                <button class="nav-btn active" data-tab="curate">
-                    <span class="btn-icon">📰</span> Feed Curation
-                </button>
-                <button class="nav-btn" data-tab="episodes">
-                    <span class="btn-icon">🎙️</span> Episodes List
-                </button>
-                <button class="nav-btn" data-tab="settings">
-                    <span class="btn-icon">⚙️</span> Configuration
-                </button>
-                <button class="nav-btn" data-tab="accounts">
-                    <span class="btn-icon">🔗</span> Social Accounts
-                </button>
-                <button class="nav-btn" data-tab="distribute">
-                    <span class="btn-icon">📡</span> Distribute
-                </button>
-            </nav>
-            <div class="sidebar-footer">
-                <p>Status: <span class="status-indicator online"></span> Active</p>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Curate Tab -->
-            <section id="tab-curate" class="tab-content active">
-                <header class="tab-header">
-                    <div>
-                        <h1>Feed Curation</h1>
-                        <p class="subtitle">Review, edit, and approve stories for the next episode</p>
-                    </div>
-                    <div style="display:flex;gap:12px;align-items:center;">
-                        <div class="limit-slider-container">
-                            <span class="limit-slider-label">Limit:</span>
-                            <input type="range" id="feed-limit" min="5" max="100" step="5" value="10" class="volume-slider">
-                            <span id="feed-limit-val" class="volume-label">10</span>
-                        </div>
-                        <button class="btn btn-primary" id="btn-scrape">
-                            <span>🔄</span> Scrape New Stories
-                        </button>
-                    </div>
-                </header>
-
-                <div class="feed-stats">
-                    <div class="stat-card">
-                        <h3>Scraped Pending</h3>
-                        <p id="stat-scraped">0</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3>Approved Today</h3>
-                        <p id="stat-approved">0</p>
-                    </div>
-                </div>
-
-                <div class="curate-split-pane">
-                    <!-- LEFT: Story Cards -->
-                    <div class="curate-feed-column">
-                        <div class="story-list" id="story-list-container">
-                            <div class="loader">Loading AI stories...</div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT: Sidebar -->
-                    <div class="curate-sidebar-column">
-                        <div class="sidebar-card">
-                            <h3>✅ Approved Today</h3>
-                            <div id="approved-today-list">
-                                <p style="color:var(--text-muted);font-size:13px;">No approved stories yet.</p>
-                            </div>
-                        </div>
-                        <div class="sidebar-card">
-                            <h3>🧭 Episode Direction</h3>
-                            <p id="approved-summary-text" style="color:var(--text-secondary);font-size:14px;line-height:1.5;">Approve stories to see a summary...</p>
-                        </div>
-                        <div class="sidebar-card">
-                            <h3>🔥 Trending Niche Topics</h3>
-                            <div id="trending-tags-container">
-                                <p style="color:var(--text-muted);font-size:13px;">Scrape and clean stories to see trends...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Episodes Tab -->
-            <section id="tab-episodes" class="tab-content">
-                <header class="tab-header">
-                    <div>
-                        <h1>Episodes List</h1>
-                        <p class="subtitle">Manage, preview, and review generated show outputs</p>
-                    </div>
-                    <button class="btn btn-success" id="btn-create-episode">
-                        <span>🎙️</span> Generate Daily Episode
-                    </button>
-                </header>
-
-                <div class="episodes-layout">
-                    <!-- Left: Episodes Grid -->
-                    <div class="episodes-column">
-                        <div class="episodes-list" id="episodes-list-contai
->>>>>>> 7a9e755 (Refactor backend and frontend: streamline server, scraper, db, renderer, tts, cleaner; update personalities, static UI, deps, and git scripts)

@@ -1,4 +1,7 @@
-import sqlite3
+"""
+tts.py — Text-to-speech synthesis for AIPulse episodes using edge-tts.
+Script turns use keys: {"agent": "Alex", "line": "...", "voice": "en-US-AndrewNeural"}
+"""
 import os
 import json
 import asyncio
@@ -6,155 +9,133 @@ import sys
 import subprocess
 import edge_tts
 
-# Ensure backend/src is in python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import db
 
+# Default voice fallbacks per agent
 VOICES = {
-    "Alex": "en-US-AndrewNeural", # Clear professional host
-    "Joy": "en-US-EmmaNeural",    # Friendly, cheerful female
-    "Bob": "en-US-BrianNeural"    # Calm, analytical male
+    "Alex": "en-US-AndrewNeural",
+    "Joy":  "en-US-EmmaNeural",
+    "Bob":  "en-US-BrianNeural",
 }
 
-async def synthesize_text_async(text, voice, output_path):
+
+async def _synthesize_async(text, voice, output_path):
     communicate = edge_tts.Communicate(text, voice)
     await communicate.save(output_path)
 
+
 def synthesize_text(text, voice, output_path):
     try:
-        asyncio.run(synthesize_text_async(text, voice, output_path))
+        asyncio.run(_synthesize_async(text, voice, output_path))
         return True
     except Exception as e:
-        print(f"Error synthesizing text: {e}")
+        print(f"  TTS error: {e}")
         return False
 
-def concat_mp3_binary(file_list, output_path):
-    """
-    Stitches multiple MP3 files together by directly concatenating their binary frames.
-    No external dependencies required. Very fast and robust.
-    """
-    try:
-        with open(output_path, "wb") as outfile:
-            for fname in file_list:
-                if os.path.exists(fname):
-                    with open(fname, "rb") as infile:
-                        outfile.write(infile.read())
-        return True
-    except Exception as e:
-        print(f"Binary MP3 concatenation failed: {e}")
-        return False
 
 def get_ffmpeg_path():
     try:
-        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         return "ffmpeg"
-    except FileNotFoundError:
-        winget_path = r"C:\Users\jobbe\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe"
-        if os.path.exists(winget_path):
-            return winget_path
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pass
+    # Common Windows WinGet path
+    winget = (r"C:\Users\Public\AppData\Local\Microsoft\WinGet\Packages"
+              r"\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe"
+              r"\ffmpeg-7.1-full_build\bin\ffmpeg.exe")
+    if os.path.exists(winget):
+        return winget
     return "ffmpeg"
 
-def concat_mp3_ffmpeg(file_list, output_path):
-    """
-    Stitches multiple MP3 files using FFmpeg if available.
-    """
-    # Create temp concat list file
-    list_file_path = "temp_concat_list.txt"
+
+def _concat_ffmpeg(file_list, output_path):
+    list_file = output_path + "_concat.txt"
     try:
-        with open(list_file_path, "w", encoding="utf-8") as f:
+        with open(list_file, "w", encoding="utf-8") as f:
             for fname in file_list:
-                # FFmpeg requires escaping single quotes and using absolute paths
                 abs_path = os.path.abspath(fname).replace("\\", "/")
                 f.write(f"file '{abs_path}'\n")
-        
-        ffmpeg_bin = get_ffmpeg_path()
-        cmd = [ffmpeg_bin, "-y", "-f", "concat", "-safe", "0", "-i", list_file_path, "-c", "copy", output_path]
-        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
-        # Clean up list file
-        if os.path.exists(list_file_path):
-            os.remove(list_file_path)
-            
-        return result.returncode == 0
+        cmd = [get_ffmpeg_path(), "-y", "-f", "concat", "-safe", "0",
+               "-i", list_file, "-c", "copy", output_path]
+        r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return r.returncode == 0
     except Exception as e:
-        print(f"FFmpeg MP3 concatenation failed: {e}")
-        if os.path.exists(list_file_path):
-            os.remove(list_file_path)
+        print(f"  FFmpeg concat failed: {e}")
+        return False
+    finally:
+        if os.path.exists(list_file):
+            os.remove(list_file)
+
+
+def _concat_binary(file_list, output_path):
+    try:
+        with open(output_path, "wb") as out:
+            for fname in file_list:
+                if os.path.exists(fname):
+                    with open(fname, "rb") as inp:
+                        out.write(inp.read())
+        return True
+    except Exception as e:
+        print(f"  Binary concat failed: {e}")
         return False
 
 
 def generate_audio_for_episode(episode_id):
-    conn = db.get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM episodes WHERE id = ?", (episode_id,))
-    row = cursor.fetchone()
-    conn.close()
-    
-    if not row:
-        print(f"Episode with ID {episode_id} not found.")
-        return None
-        
-    episode = dict(row)
-    script = json.loads(episode["script_json"])
-    
-    print(f"Synthesizing audio for Episode {episode_id}: '{episode['title']}'...")
-    
-    temp_files = []
-    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    temp_dir = os.path.join(backend_dir, "temp_audio")
-    os.makedirs(temp_dir, exist_ok=True)
-    
-    for idx, turn in enumerate(script):
-        speaker = turn["speaker"]
-        text = turn["text"]
-        voice = VOICES.get(speaker, "en-US-AndrewNeural")
-        
-        temp_file = os.path.join(temp_dir, f"line_{idx}.mp3")
-        print(f"-> Synthesizing line {idx} ({speaker})...")
-        
-        success = synthesize_text(text, voice, temp_file)
-        if success:
-            temp_files.append(temp_file)
-            
-    if not temp_files:
-        print("Error: No audio segments were synthesized.")
-        return None
-        
-    # Final output path
-    output_dir = os.path.join(backend_dir, "output")
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f"episode_{episode_id}.mp3")
-    
-    # Try FFmpeg first, fallback to binary concat
-    print("Stitching audio segments...")
-    success = concat_mp3_ffmpeg(temp_files, output_path)
-    if not success:
-        print("FFmpeg not available or failed. Falling back to binary concatenation...")
-        success = concat_mp3_binary(temp_files, output_path)
-        
-    # Clean up temp files
-    for fname in temp_files:
-        try:
-            os.remove(fname)
-        except Exception:
-            pass
-            
-    if success:
-        print(f"Audio file created successfully: {output_path}")
-        # Update episode status
-        conn = db.get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE episodes SET audio_path = ?, status = 'audio_ready' WHERE id = ?",
-            (output_path, episode_id)
-        )
-        conn.commit()
-        conn.close()
-        return output_path
-    else:
-        print("Stitching audio failed.")
+    """Generate MP3 audio for an episode. Returns output path or None."""
+    episode = db.get_episode_by_id(episode_id)
+    if not episode:
+        print(f"Episode {episode_id} not found.")
         return None
 
+    script = json.loads(episode["script_json"])
+    print(f"Synthesizing audio for Episode {episode_id}: '{episode['title']}'...")
+
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    temp_dir  = os.path.join(backend_dir, "temp_audio")
+    output_dir = os.path.join(backend_dir, "output")
+    os.makedirs(temp_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
+
+    temp_files = []
+    for idx, turn in enumerate(script):
+        # Support both key names for compatibility
+        agent = turn.get("agent") or turn.get("speaker", "Alex")
+        line  = turn.get("line")  or turn.get("text", "")
+        voice = turn.get("voice") or VOICES.get(agent, "en-US-AndrewNeural")
+
+        if not line.strip():
+            continue
+
+        tmp = os.path.join(temp_dir, f"ep{episode_id}_line{idx}.mp3")
+        print(f"  Line {idx} [{agent}]: {line[:60]}...")
+        if synthesize_text(line, voice, tmp):
+            temp_files.append(tmp)
+
+    if not temp_files:
+        print("  No audio segments synthesized.")
+        return None
+
+    output_path = os.path.join(output_dir, f"episode_{episode_id}.mp3")
+    print("  Concatenating segments...")
+    ok = _concat_ffmpeg(temp_files, output_path) or _concat_binary(temp_files, output_path)
+
+    for f in temp_files:
+        try: os.remove(f)
+        except: pass
+
+    if ok and os.path.exists(output_path):
+        print(f"  Audio ready: {output_path}")
+        conn = db.get_db_connection()
+        conn.execute("UPDATE episodes SET audio_path=?, status='audio_ready' WHERE id=?",
+                     (output_path, episode_id))
+        conn.commit(); conn.close()
+        return output_path
+    else:
+        print("  Audio generation failed.")
+        return None
+
+
 if __name__ == "__main__":
-    # Test audio generation for Episode 1
+    db.init_db()
     generate_audio_for_episode(1)

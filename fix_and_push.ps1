@@ -1,33 +1,31 @@
 Set-Location $PSScriptRoot
 
-Write-Host "Killing git/cmd processes..." -ForegroundColor Yellow
+Write-Host "Killing git processes..." -ForegroundColor Yellow
 Get-Process git -ErrorAction SilentlyContinue | Stop-Process -Force
-Get-Process git-remote-https -ErrorAction SilentlyContinue | Stop-Process -Force
-
 Start-Sleep -Seconds 1
 
-Write-Host "Removing lock files..." -ForegroundColor Yellow
+Write-Host "Removing lock file..." -ForegroundColor Yellow
 Remove-Item ".git\index.lock" -Force -ErrorAction SilentlyContinue
-Remove-Item ".git\rebase-merge\*" -Force -ErrorAction SilentlyContinue
-Remove-Item ".git\rebase-merge" -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item ".git\MERGE_HEAD" -Force -ErrorAction SilentlyContinue
-Remove-Item ".git\AUTO_MERGE" -Force -ErrorAction SilentlyContinue
 
-Write-Host "Resetting index..." -ForegroundColor Yellow
-git reset HEAD
+Write-Host "Restoring carousel files from commit 1c9da3a..." -ForegroundColor Yellow
+git checkout 1c9da3a -- backend/carousel/brand_config.json
+git checkout 1c9da3a -- backend/carousel/carousel_template.pptx
+git checkout 1c9da3a -- backend/carousel/generate_carousel.py
+git checkout 1c9da3a -- backend/carousel/preview_app.py
+git checkout 1c9da3a -- backend/carousel/run_preview.bat
 
-Write-Host "Staging all files..." -ForegroundColor Yellow
-git add -A
+Write-Host "Staging carousel files..." -ForegroundColor Yellow
+git add backend/carousel/
 
 Write-Host "Committing..." -ForegroundColor Yellow
-git commit -m "Carousel generator: preview app + onclick fix" 2>&1
-if ($LASTEXITCODE -ne 0) { Write-Host "(nothing new to commit)" -ForegroundColor Gray }
+git commit -m "Restore carousel generator files (generate_carousel.py, preview_app.py, brand_config, template)"
 
-Write-Host "Force pushing to main..." -ForegroundColor Yellow
-git push --force-with-lease origin main
+Write-Host "Pushing to main..." -ForegroundColor Yellow
+git push origin main
 
 Write-Host ""
 Write-Host "=== Result ===" -ForegroundColor Green
 git log --oneline -4
+git ls-tree --name-only HEAD backend/carousel/
 Write-Host ""
 Read-Host "Press Enter to close"
